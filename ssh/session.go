@@ -360,10 +360,12 @@ func (s *Session) Shell() error {
 		return errors.New("ssh: session already started")
 	}
 
-	ok, err := s.ch.SendRequest("shell", true, nil)
-	if err == nil && !ok {
-		return errors.New("ssh: could not start shell")
-	}
+	// FIXME Changed WantReply to False. https://github.com/golang/go/issues/16194#issuecomment-231340381
+	// Also ok returns false if wantReply is false. So we removed this err check.
+	_, err := s.ch.SendRequest("shell", false, nil)
+	// if err == nil && !ok {
+	// 	return errors.New("ssh: could not start shell")
+	// }
 	if err != nil {
 		return err
 	}
@@ -458,7 +460,9 @@ func (s *Session) wait(reqs <-chan *Request) error {
 			// section 6.10 recommends against this
 			// behavior, but it is allowed, so we let
 			// clients handle it.
-			return &ExitMissingError{}
+			// return &ExitMissingError{}
+			// FIXME Ignored ExitMissingError https://github.com/golang/go/issues/16194#issuecomment-231340381
+			return nil
 		}
 		wm.status = 128
 		if _, ok := signals[Signal(wm.signal)]; ok {
